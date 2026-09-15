@@ -1,0 +1,25 @@
+# 依赖（安装时自动生成，无需提交）
+node_modules/
+
+# 构建产物
+dist/
+dist-release/
+
+# 工具与编辑器元数据
+.codeartsdoer/
+.merkle-snapshot.json
+.vscode/
+.idea/
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db
+
+# 本地内部文件（不上传）
+课表.xlsx
+check-data.js
+check-paths.js
+f_logo.png
+更新说明-v1.1.*
+.git.bak/

@@ -1,0 +1,105 @@
+{
+  "name": "desktop-calendar",
+  "version": "1.1.0",
+  "description": "高校桌面校历与待办系统",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --win portable",
+    "dist": "electron-builder --win"
+  },
+  "author": "wcaijun",
+  "license": "MIT",
+  "dependencies": {
+    "evernote": "^2.0.5",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.university.desktopcalendar",
+    "productName": "桌面校历",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "artifactName": "桌面校历-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "桌面校历-便携版-${version}.exe"
+    },
+    "files": [
+      "**/*",
+      "!课表.xlsx",
+      "!更新说明-v1.1.*",
+      "!check-data.js",
+      "!check-paths.js",
+      "!f_logo.png",
+      "!docs/**",
+      "!使用说明.md",
+      "!CHANGELOG.md",
+      "!.merkle-snapshot.json",
+      "!.codeartsdoer/**",
+      "!.git.bak/**",
+      "!*.log"
+    ],
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "icon": "build/icons",
+      "artifactName": "DesktopCalendar-${version}-linux-x64.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "build/icons/512x512.png"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wcaijun/desktop-calendar.git"
+  }
+}

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>桌面校历</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="brand">
+      <img class="brand-mark" src="logo.png" alt="logo">
+      <span class="brand-name">桌面校历 · 待办</span>
+    </div>
+    <div class="toolbar-group">
+      <select id="yearSelect" title="切换学年；选择最后一项可新建下一学年"></select>
+    </div>
+    <div class="seg-group">
+      <button id="btnSem1" class="seg-btn">第一学期</button>
+      <button id="btnSem2" class="seg-btn">第二学期</button>
+    </div>
+    <div class="seg-group">
+      <button id="btnViewSem" class="seg-btn active">校历</button>
+      <button id="btnViewMonth" class="seg-btn">月</button>
+      <button id="btnViewWeek" class="seg-btn">周</button>
+      <button id="btnViewToday" class="seg-btn">今天</button>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <button id="btnSettings" class="btn" title="校历设置">⚙ 设置</button>
+    <button id="btnQuit" class="btn btn-quit" title="退出程序">退出</button>
+  </header>
+
+  <main id="view"></main>
+
+  <div id="todoModal" class="modal hidden">
+    <div class="modal-mask" data-close="1"></div>
+    <div class="modal-card modal-todo">
+      <div class="modal-head">
+        <div>
+          <div id="todoDateTitle" class="modal-title"></div>
+          <div id="todoWeekInfo" class="modal-sub"></div>
+        </div>
+        <button class="btn-close" data-close="1">×</button>
+      </div>
+      <div id="todoEventBar" class="event-bar hidden"></div>
+      <ul id="todoList" class="todo-list"></ul>
+      <div class="todo-add">
+        <input id="todoInput" type="text" placeholder="输入待办内容，回车添加…">
+        <button id="todoAddBtn" class="btn btn-primary">添加</button>
+      </div>
+      <div class="todo-sync-bar">
+        <button id="todoPushToEvernote" class="btn btn-ghost" title="将当天待办推送到印象笔记">📤 推送到印象笔记</button>
+        <button id="todoPullFromEvernote" class="btn btn-ghost" title="从印象笔记拉取当天待办">📥 从印象笔记拉取</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-mask" data-close="1"></div>
+    <div class="modal-card modal-settings">
+      <div class="modal-head">
+        <div class="modal-title" id="settingsTitle">校历设置</div>
+        <button class="btn-close" data-close="1">×</button>
+      </div>
+      <div class="settings-body">
+        <div class="form-block appearance-block">
+          <div class="block-title"><span>🎨 外观与桌面</span></div>
+          <div class="appearance-row">
+            <label class="tb-label" for="themeSelect">皮肤</label>
+            <select id="themeSelect"></select>
+          </div>
+          <label class="switch-row">
+            <input type="checkbox" id="setDesktopMode">
+            <span>桌面壁纸模式（贴在桌面最底层、半透明卡片、工具栏可拖动，切换后应用自动重启）</span>
+          </label>
+          <div class="opacity-row">
+            <label class="tb-label">背景不透明度</label>
+            <input type="range" id="setOpacity" min="30" max="100" step="5">
+            <span id="opacityVal" class="opacity-val"></span>
+          </div>
+        </div>
+
+        <div class="form-block timetable-block">
+          <div class="block-title">
+            <span>📚 课表管理</span>
+            <span id="ttCount" class="status-pill">0 门课程</span>
+          </div>
+          <div class="form-hint">
+            课表会自动显示为对应日期的待办（自动区分单双周）。数据保存在本机
+            <b>%APPDATA%\desktop-calendar\calendar-data.json</b> 的 <b>timetable</b> 字段，
+            可手动编辑（详见说明文档），也可在下方导入/导出（支持 Excel、CSV、JSON）。
+          </div>
+          <div class="tt-actions">
+            <button id="ttAdd" class="btn btn-primary">＋ 添加课程</button>
+            <button id="ttImport" class="btn">📥 导入课表</button>
+            <button id="ttExport" class="btn">📤 导出课表</button>
+            <button id="ttOpenFolder" class="btn btn-ghost" title="打开 calendar-data.json 所在文件夹">📂 打开数据文件夹</button>
+          </div>
+          <div id="ttList" class="tt-list"></div>
+          <div id="ttForm" class="tt-form hidden">
+            <div class="tt-form-title" id="ttFormTitle">添加课程</div>
+            <div class="tt-form-grid">
+              <label>课程名称 *</label><input type="text" id="ttCourse" placeholder="如：高等数学">
+              <label>教师</label><input type="text" id="ttTeacher" placeholder="如：张老师">
+              <label>地点</label><input type="text" id="ttRoom" placeholder="如：教学楼-A101">
+              <label>星期 *</label>
+              <select id="ttDay">
+                <option value="1">星期一</option>
+                <option value="2">星期二</option>
+                <option value="3">星期三</option>
+                <option value="4">星期四</option>
+                <option value="5">星期五</option>
+                <option value="6">星期六</option>
+                <option value="7">星期日</option>
+              </select>
+              <label>时间 *</label><input type="text" id="ttTime" placeholder="如：14:30-16:10">
+              <label>周类型</label>
+              <select id="ttWeekKind">
+                <option>每周</option>
+                <option>单周</option>
+                <option>双周</option>
+              </select>
+              <label>起止日期</label>
+              <div class="tt-dates">
+                <input type="date" id="ttStart"><span>至</span><input type="date" id="ttEnd">
+              </div>
+            </div>
+            <div class="tt-form-foot">
+              <span class="form-hint-inline">起止日期留空视为长期有效</span>
+              <button id="ttCancel" class="btn">取消</button>
+              <button id="ttSave" class="btn btn-primary">保存</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-block evernote-block">
+          <div class="block-title">
+            <span>📝 印象笔记同步</span>
+            <span id="evernoteStatus" class="status-pill">未连接</span>
+          </div>
+          <div class="form-hint">
+            将桌面校历的待办事项与印象笔记双向同步。
+            先在 <a href="https://app.yinxiang.com/api/DeveloperToken.action" target="_blank">印象笔记开发者中心</a> 获取 Token，填入下方。
+          </div>
+          <div class="evernote-fields">
+            <div class="en-field">
+              <label>开发者 Token</label>
+              <input type="password" id="enToken" placeholder="点击「获取 Token」按钮获取">
+            </div>
+            <div class="en-field">
+              <label>NoteStore URL</label>
+              <input type="text" id="enNoteStoreUrl" placeholder="https://app.yinxiang.com/shard/s1/notestore">
+            </div>
+          </div>
+          <div class="evernote-actions">
+            <button id="enGetToken" class="btn btn-ghost" title="打开印象笔记开发者中心获取 Token">🔑 获取 Token</button>
+            <button id="enConnect" class="btn btn-primary">连接</button>
+            <button id="enDisconnect" class="btn btn-quit" style="display:none">断开连接</button>
+            <button id="enTestConn" class="btn btn-ghost" title="测试 Token 与 NoteStore URL 是否有效">🔍 测试连接</button>
+            <button id="enFullSync" class="btn" title="从印象笔记拉取所有待办，与本地合并">🔄 完整同步</button>
+          </div>
+          <div id="enConflictLog" class="en-conflict hidden">
+            <div class="en-conflict-title">冲突记录（最近 20 条，以本地为准）</div>
+            <div id="enConflictList"></div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label>开学准备周（周一）</label>
+          <input type="date" id="setPrepMonday">
+          <label>上课周数</label>
+          <input type="number" id="setClassWeeks" min="1" max="30">
+          <label>考试周数</label>
+          <input type="number" id="setExamWeeks" min="0" max="4">
+          <label>准备周名称</label>
+          <input type="text" id="setPrepLabel">
+          <label>考试周名称</label>
+          <input type="text" id="setExamLabel">
+          <label>假期名称</label>
+          <input type="text" id="setVacationLabel">
+        </div>
+        <div class="form-block">
+          <div class="form-hint">重要事件（每行一条，格式：日期 空格 事件名，如 2026-10-01 国庆节；事件名前加 ~ 则显示为灰色说明文字）</div>
+          <textarea id="setEvents" rows="8" spellcheck="false"></textarea>
+        </div>
+        <div class="form-block">
+          <div class="form-hint">备注（每行一条，显示在校历下方）</div>
+          <textarea id="setNotes" rows="6" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button id="settingsReset" class="btn btn-danger-ghost">恢复默认数据</button>
+        <div class="spacer"></div>
+        <button id="settingsCancel" class="btn">取消</button>
+        <button id="settingsSave" class="btn btn-primary">保存</button>
+      </div>
+      <div class="about-panel">
+        <img class="about-logo" src="logo.png" alt="logo">
+        <div class="about-text">
+          <div class="about-title">桌面校历 · 待办</div>
+          <div class="about-author">开源项目 · 欢迎反馈</div>
+          <div class="about-email"><a href="https://github.com/wcaijun/desktop-calendar">github.com/wcaijun/desktop-calendar</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
